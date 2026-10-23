@@ -1,122 +1,115 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { useState, useEffect } from 'react';
+import Navbar from './components/Navbar';
+import SummaryCards from './components/SummaryCards';
+import ReportForm from './components/ReportForm';
+import ReportList from './components/ReportList';
+import ReportDetail from './components/ReportDetail';
 
-function App() {
-  const [count, setCount] = useState(0)
+const defaultData = [
+  {
+    id: 1,
+    nama: 'Ahmad Rizky',
+    lokasi: 'Gedung A - Ruang 201',
+    kategori: 'Elektronik (AC, Proyektor, Lampu)',
+    deskripsi: 'AC tidak dingin dan mengeluarkan suara bising.',
+    foto: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=200&auto=format&fit=crop',
+    status: 'Diproses',
+  },
+  {
+    id: 2,
+    nama: 'Siti Nurhaliza',
+    lokasi: 'Gedung B - Laboratorium Komputer',
+    kategori: 'Mebel (Meja, Kursi, Papan Tulis)',
+    deskripsi: 'Kursi lab patah pada bagian kaki kanan.',
+    foto: 'https://images.unsplash.com/photo-1580481072645-022f9a6d1270?q=80&w=200&auto=format&fit=crop',
+    status: 'Telah Selesai',
+  },
+];
+
+export default function App() {
+  // State Navigasi
+  const [activePage, setActivePage] = useState('dashboard');
+  const [selectedReportId, setSelectedReportId] = useState(null);
+  const [showSummary, setShowSummary] = useState(true);
+  
+  const [reports, setReports] = useState(() => {
+    const saved = localStorage.getItem('laporin_data');
+    return saved ? JSON.parse(saved) : defaultData;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('laporin_data', JSON.stringify(reports));
+  }, [reports]);
+
+  const handleAddReport = (newReport) => {
+    setReports([newReport, ...reports]);
+    setActivePage('dashboard'); // Pindah otomatis setelah submit
+  };
+
+  const handleToggleStatus = (id) => {
+    setReports(reports.map(r => r.id === id ? { ...r, status: r.status === 'Diproses' ? 'Telah Selesai' : 'Diproses' } : r));
+  };
+
+  const handleDelete = (id) => {
+    if (confirm('Apakah Anda yakin ingin menghapus laporan ini?')) {
+      setReports(reports.filter((r) => r.id !== id));
+    }
+  };
+
+  const handleViewDetail = (id) => {
+    setSelectedReportId(id);
+    setActivePage('detail');
+  };
+
+  const total = reports.length;
+  const diproses = reports.filter((r) => r.status === 'Diproses').length;
+  const selesai = reports.filter((r) => r.status === 'Telah Selesai').length;
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div className="bg-slate-50 min-h-screen flex flex-col font-sans antialiased overflow-x-hidden">
+      <Navbar activePage={activePage} setActivePage={setActivePage} />
 
-      <div className="ticks"></div>
+      <main className="flex-grow px-4 sm:px-6 py-8 max-w-7xl mx-auto w-full">
+        {activePage === 'dashboard' && (
+          <div className="space-y-8 animate-fade-in">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold text-slate-900">Dashboard Pengaduan</h1>
+                <p className="text-slate-500 mt-1">Pantau status laporan kerusakan fasilitas kampus terkini.</p>
+              </div>
+              <button
+                onClick={() => setShowSummary(!showSummary)}
+                className="text-sm bg-slate-200 hover:bg-slate-300 text-slate-700 py-2 px-4 rounded-lg font-medium transition-colors cursor-pointer"
+              >
+                {showSummary ? 'Sembunyikan Ringkasan' : 'Tampilkan Ringkasan'}
+              </button>
+            </div>
+            <SummaryCards total={total} diproses={diproses} selesai={selesai} show={showSummary} />
+            <ReportList reports={reports} onViewDetail={handleViewDetail} />
+          </div>
+        )}
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+        {activePage === 'form' && (
+          <div className="animate-fade-in">
+            <ReportForm onAddReport={handleAddReport} />
+          </div>
+        )}
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+        {activePage === 'detail' && (
+          <div className="animate-fade-in">
+            <ReportDetail 
+              report={reports.find(r => r.id === selectedReportId)} 
+              onBack={() => setActivePage('dashboard')}
+              onToggleStatus={handleToggleStatus}
+              onDelete={handleDelete}
+            />
+          </div>
+        )}
+      </main>
+
+      <footer className="bg-slate-800 text-slate-400 py-6 text-center mt-auto border-t border-slate-700">
+        <p className="text-sm">&copy; 2026 LaporIn - Telkom University</p>
+      </footer>
+    </div>
+  );
 }
-
-export default App
