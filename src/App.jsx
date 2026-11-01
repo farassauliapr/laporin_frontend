@@ -4,6 +4,7 @@ import SummaryCards from './components/SummaryCards';
 import ReportForm from './components/ReportForm';
 import ReportList from './components/ReportList';
 import ReportDetail from './components/ReportDetail';
+import TechnicianList from './components/TechnicianList';
 
 const defaultData = [
   {
@@ -27,11 +28,10 @@ const defaultData = [
 ];
 
 export default function App() {
-  // State Navigasi
   const [activePage, setActivePage] = useState('dashboard');
   const [selectedReportId, setSelectedReportId] = useState(null);
   const [showSummary, setShowSummary] = useState(true);
-  
+
   const [reports, setReports] = useState(() => {
     const saved = localStorage.getItem('laporin_data');
     return saved ? JSON.parse(saved) : defaultData;
@@ -43,11 +43,17 @@ export default function App() {
 
   const handleAddReport = (newReport) => {
     setReports([newReport, ...reports]);
-    setActivePage('dashboard'); // Pindah otomatis setelah submit
+    setActivePage('dashboard');
   };
 
   const handleToggleStatus = (id) => {
-    setReports(reports.map(r => r.id === id ? { ...r, status: r.status === 'Diproses' ? 'Telah Selesai' : 'Diproses' } : r));
+    setReports(
+      reports.map((r) =>
+        r.id === id
+          ? { ...r, status: r.status === 'Diproses' ? 'Telah Selesai' : 'Diproses' }
+          : r
+      )
+    );
   };
 
   const handleDelete = (id) => {
@@ -74,8 +80,12 @@ export default function App() {
           <div className="space-y-8 animate-fade-in">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div>
-                <h1 className="text-2xl md:text-3xl font-bold text-slate-900">Dashboard Pengaduan</h1>
-                <p className="text-slate-500 mt-1">Pantau status laporan kerusakan fasilitas kampus terkini.</p>
+                <h1 className="text-2xl md:text-3xl font-bold text-slate-900">
+                  Dashboard Pengaduan
+                </h1>
+                <p className="text-slate-500 mt-1">
+                  Pantau status laporan kerusakan fasilitas kampus terkini.
+                </p>
               </div>
               <button
                 onClick={() => setShowSummary(!showSummary)}
@@ -84,7 +94,14 @@ export default function App() {
                 {showSummary ? 'Sembunyikan Ringkasan' : 'Tampilkan Ringkasan'}
               </button>
             </div>
+
+            {/* Ringkasan Kartu Statistik */}
             <SummaryCards total={total} diproses={diproses} selesai={selesai} show={showSummary} />
+
+            {/* Fitur AJAX / API Teknisi */}
+            <TechnicianList />
+
+            {/* Tabel Laporan*/}
             <ReportList reports={reports} onViewDetail={handleViewDetail} />
           </div>
         )}
@@ -97,8 +114,8 @@ export default function App() {
 
         {activePage === 'detail' && (
           <div className="animate-fade-in">
-            <ReportDetail 
-              report={reports.find(r => r.id === selectedReportId)} 
+            <ReportDetail
+              report={reports.find((r) => r.id === selectedReportId)}
               onBack={() => setActivePage('dashboard')}
               onToggleStatus={handleToggleStatus}
               onDelete={handleDelete}
